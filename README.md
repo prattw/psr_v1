@@ -28,3 +28,5 @@ Vision: Backtest results and backtest different potential strategies.
 Desire 3. The program should have an interface to input stock ticker symbols.
 Currently I (the operator) must hard code the ticker symbols into the program in order to actually buy and sell stock.  
 I would like an easier way to input this the stock ticker symbols.  I realize that this will likely require architecting a backend, so I am not thrilled with this taking up time/resources when I can just hard code the stock ticker symbols myself.
+
+Here is a listing of all the pre-processed data file names:
