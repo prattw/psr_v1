@@ -1,0 +1,99 @@
+SPECIFIC TRADE STRATEGIES REMOVED:
+    def trade_aapl(self):
+        today = datetime.now(self.est).date()
+        current_time = datetime.now(self.est).time()
+        current_price = self.get_current_market_price('AAPL')
+        logging.info(f"Executing trade strategy for AAPL. Current price: {current_price}")
+        try:
+            # Buy on Monday at market open
+            if today.weekday() == 0 and current_time == self.market_open:  # Monday at 9:30 AM
+                self.place_order('buy', 'AAPL', 10)
+                self.open_positions['AAPL'] = {'purchase_price': current_price, 'purchase_time': datetime.now(self.est), 'last_action': 'buy'}
+
+            # Check if AAPL is in open positions
+            if 'AAPL' in self.open_positions:
+                purchase_info = self.open_positions['AAPL']
+
+                # Sell if price increases by 0.75%
+                if current_price >= purchase_info['purchase_price'] * 1.0075 and purchase_info['last_action'] == 'buy':
+                    self.place_order('sell', 'AAPL', 10)
+                    purchase_info['last_action'] = 'sell'
+
+                # Reb Buy if price decreases by 0.35% from the last sold price
+                if current_price <= purchase_info['purchase_price'] * 0.9965 and purchase_info['last_action'] == 'sell':
+                    self.place_order('buy', 'AAPL', 10)
+                    purchase_info['last_action'] = 'buy'
+
+                # Hold until Friday 4:00 PM and then sell
+                if today.weekday() == 4 and current_time >= datetime.strptime("16:00:00", "%H:%M:%S").time():  # Friday at 4:00 PM
+                    if purchase_info['last_action'] == 'buy':
+                        self.place_order('sell', 'AAPL', 10)
+                        self.open_positions.pop('AAPL', None)
+        except Exception as e:
+            logging.error(f"Error in trade_aapl: {e}")
+    
+    def trade_msft(self):
+        today = datetime.now(self.est).date()
+        current_time = datetime.now(self.est).time()
+        current_price = self.get_current_market_price('MSFT')
+        logging.info(f"Executing trade strategy for MSFT. Current price: {current_price}")
+        try:
+            # Buy on Monday at market open
+            if today.weekday() == 0 and current_time == self.market_open:  # Monday at 9:30 AM
+                self.place_order('buy', 'MSFT', 10)
+                self.open_positions['MSFT'] = {'purchase_price': current_price, 'purchase_time': datetime.now(self.est), 'last_action': 'buy'}
+
+            # Check if AAPL is in open positions
+            if 'MSFT' in self.open_positions:
+                purchase_info = self.open_positions['MSFT']
+
+                # Sell if price increases by 0.75%
+                if current_price >= purchase_info['purchase_price'] * 1.0075 and purchase_info['last_action'] == 'buy':
+                    self.place_order('sell', 'MSFT', 10)
+                    purchase_info['last_action'] = 'sell'
+
+                # Reb Buy if price decreases by 0.35% from the last sold price
+                if current_price <= purchase_info['purchase_price'] * 0.9965 and purchase_info['last_action'] == 'sell':
+                    self.place_order('buy', 'MSFT', 10)
+                    purchase_info['last_action'] = 'buy'
+
+                # Hold until Friday 4:00 PM and then sell
+                if today.weekday() == 4 and current_time >= datetime.strptime("16:00:00", "%H:%M:%S").time():  # Friday at 4:00 PM
+                    if purchase_info['last_action'] == 'buy':
+                        self.place_order('sell', 'MSFT', 10)
+                        self.open_positions.pop('MSFT', None)
+        except Exception as e:
+            logging.error(f"Error in trade_msft: {e}")
+
+    def trade_panw(self):
+        today = datetime.now(self.est).date()
+        current_time = datetime.now(self.est).time()
+        current_price = self.get_current_market_price('PANW')
+        logging.info(f"Executing trade strategy for PANW. Current price: {current_price}")
+        try:
+            # Buy on Monday at market open
+            if today.weekday() == 0 and current_time == self.market_open:  # Monday at 9:30 AM
+                self.place_order('buy', 'PANW', 10)
+                self.open_positions['PANW'] = {'purchase_price': current_price, 'purchase_time': datetime.now(self.est), 'last_action': 'buy'}
+
+            # Check if AAPL is in open positions
+            if 'PANW' in self.open_positions:
+                purchase_info = self.open_positions['PANW']
+
+                # Sell if price increases by 0.75%
+                if current_price >= purchase_info['purchase_price'] * 1.0075 and purchase_info['last_action'] == 'buy':
+                    self.place_order('sell', 'PANW', 10)
+                    purchase_info['last_action'] = 'sell'
+
+                # Reb Buy if price decreases by 0.35% from the last sold price
+                if current_price <= purchase_info['purchase_price'] * 0.9965 and purchase_info['last_action'] == 'sell':
+                    self.place_order('buy', 'PANW', 10)
+                    purchase_info['last_action'] = 'buy'
+
+                # Hold until Friday 4:00 PM and then sell
+                if today.weekday() == 4 and current_time >= datetime.strptime("16:00:00", "%H:%M:%S").time():  # Friday at 4:00 PM
+                    if purchase_info['last_action'] == 'buy':
+                        self.place_order('sell', 'PANW', 10)
+                        self.open_positions.pop('PANW', None)
+        except Exception as e:
+            logging.error(f"Error in trade_panw: {e}")
