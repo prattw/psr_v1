@@ -1,4 +1,4 @@
-Project Sea Ranch: 
+Project Sea Ranch: https://github.com/prattw/psr_v1.git
 
 Background:
 The goal of Project Sea Ranch to make trades on a daily basis in order to make a minimum profit of 2% and maximum profit of 5% a day.  The trading platform is Alpaca and the stock data is from the Alpaca API.  The program is run off of my MacBook Air.  I will likely transition it to running from Mac Mini once I am done with this phase of development.  Preferably, I will move this program to the cloud with a server in NYC.  Additionally, all the backtesting functions will be automated and I, as the operator with backtest potential strategies, analyze daily results, and direct strategy.  
