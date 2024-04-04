@@ -3,7 +3,7 @@ import sys
 import tensorflow as tf
 from tensorflow import keras
 from keras_tuner import RandomSearch
-from data_preparation import load_data, preprocess_data, create_sequences
+from data_preparation import load_data, preprocess_and_save_data as preprocess_data, create_sequences
 
 # Define the LSTM model builder function
 def build_model(hp):
@@ -24,7 +24,7 @@ def build_model(hp):
 
 # Load and preprocess your data
 # Make sure to replace 'path_to_your_data.csv' with the correct path to your dataset
-raw_data = load_data('path_to_your_data.csv')
+raw_data = load_data('/Users/williampratt/Documents/project_sea_ranch/data/your_actual_data_file.csv')
 cleaned_data = preprocess_data(raw_data)
 sequences = create_sequences(cleaned_data, sequence_length=20)  # Adjust 'sequence_length' as needed
 X_train, y_train = sequences  # Adjust based on how your `create_sequences` function structures the output
