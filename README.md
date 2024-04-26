@@ -29,3 +29,9 @@ Desire 3. The program should have an interface to input stock ticker symbols.
 Currently I (the operator) must hard code the ticker symbols into the program in order to actually buy and sell stock.  
 I would like an easier way to input this the stock ticker symbols.  I realize that this will likely require architecting a backend, so I am not thrilled with this taking up time/resources when I can just hard code the stock ticker symbols myself.
 
+16APR model testing:
+Complex: INFO:root:Test Loss, Test MAE: [0.09796494990587234, 0.2578960359096527],INFO:root:Test Loss, Test MAE: [0.09797491878271103, 0.2584886848926544], INFO:root:Test Loss, Test MAE: [0.09796691685914993, 0.2578791081905365]
+
+
+
+Bidirectional: INFO:root:Test Loss, Test MAE: [0.09796466678380966, 0.2579357326030731], INFO:root:Test Loss, Test MAE: [0.09796635806560516, 0.25807181000709534],  INFO:root:Test Loss, Test MAE: [0.09797114878892899, 0.2582005262374878], INFO:root:Test Loss, Test MAE: [0.09796968847513199, 0.25799915194511414], Increased density INFO:root:Test Loss, Test MAE: [0.0003435383550822735, 0.007481505628675222]

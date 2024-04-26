@@ -11,7 +11,7 @@ logging.basicConfig(filename='model_evaluation.log', level=logging.INFO,
                     format='%(asctime)s:%(levelname)s:%(message)s')
 
 # Load the saved model
-model_path = '/Users/williampratt/Documents/project_sea_ranch/models/lstm_prediction_model_v1.keras'  # Update this path to where your model is saved
+model_path = '/Users/williampratt/Library/Mobile Documents/com~apple~CloudDocs/Documents/project_sea_ranch/models/lstm_prediction_model_v1.keras'  # Update this path to where your model is saved
 try:
     model = keras.models.load_model(model_path)
 except FileNotFoundError:
