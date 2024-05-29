@@ -3,6 +3,8 @@ from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import LSTM, Dense, Dropout
 from tensorflow.keras.optimizers import Adam
 import numpy as np
+import yaml
+
 
 def create_lstm_model(input_shape, units=50, dropout_rate=0.2, learning_rate=0.001):
     """
@@ -13,7 +15,7 @@ def create_lstm_model(input_shape, units=50, dropout_rate=0.2, learning_rate=0.0
         Dropout(dropout_rate),
         LSTM(units=units),
         Dropout(dropout_rate),
-        Dense(1)  # Single output neuron for a single predicted value
+        Dense(input_shape[1])  # Single output neuron for a single predicted value
     ])
 
     optimizer = Adam(learning_rate=learning_rate)
@@ -43,11 +45,13 @@ def save_model(model, filename):
     model.save(filename)
 
 if __name__ == "__main__":
+    with open('src/settings.yml', 'r') as f:
+        dat = yaml.load(f, Loader=yaml.SafeLoader)
     # Load the preprocessed data
-    X_train = np.load('/Users/williampratt/Documents/project_sea_ranch/data/preprocessed data/x_train.npy')
-    y_train = np.load('/Users/williampratt/Documents/project_sea_ranch/data/preprocessed data/y_train.npy')
-    X_test = np.load('/Users/williampratt/Documents/project_sea_ranch/data/preprocessed data/x_test.npy')
-    y_test = np.load('/Users/williampratt/Documents/project_sea_ranch/data/preprocessed data/y_test.npy')
+    X_train = np.load('data/preprocessed data/x_train.npy')
+    y_train = np.load('data/preprocessed data/y_train.npy')
+    X_test = np.load('data/preprocessed data/x_test.npy')
+    y_test = np.load('data/preprocessed data/y_test.npy')
 
     print("X_train shape:", X_train.shape)
     print("y_train shape:", y_train.shape)
@@ -64,4 +68,4 @@ if __name__ == "__main__":
 
     # Evaluate and save the model
     performance = evaluate_model(model, X_test, y_test)
-    save_model(model, '/Users/williampratt/Documents/project_sea_ranch/models/lstm_prediction_model_v1.keras')
+    save_model(model, dat['model_path'])

@@ -1,3 +1,7 @@
+"""
+Run preprocessing and split data and save to run inference
+"""
+
 import pandas as pd
 import numpy as np
 import pandas as pd
@@ -6,6 +10,7 @@ import os
 import pickle
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import MinMaxScaler
+import yaml
 
 logging.basicConfig(level=logging.INFO)
 
@@ -27,7 +32,7 @@ def load_data(filename):
 
 from sklearn.preprocessing import MinMaxScaler
 
-def preprocess_and_save_data(data, scaler_path='scaler.pkl'):
+def preprocess_and_save_data(data, stock):
     try:
         # Drop 'Unnamed: 0' column if it exists and columns with all NaN values
         data = data.drop(columns='Unnamed: 0', errors='ignore').dropna(axis=1, how='all')
@@ -38,7 +43,7 @@ def preprocess_and_save_data(data, scaler_path='scaler.pkl'):
         data[numeric_columns] = scaler.fit_transform(data[numeric_columns])
 
         # Save the scaler for later use
-        with open(scaler_path, 'wb') as file:
+        with open(f'{stock}_scaler.pkl', 'wb') as file:
             pickle.dump(scaler, file)
 
         return data
@@ -120,9 +125,11 @@ def train_test_split_sequences(sequences, test_size=0.2):
     return train_data, test_data
 
 if __name__ == "__main__":
-    stocks = ['SPY', 'NVDA', 'VOO']
-    sequence_length = 30  # This should match the sequence length you're using for training
-    num_features = 5  # Adjust this based on the actual number of features you have
+    with open('src/settings.yml', 'r') as f:
+        dat = yaml.load(f, Loader=yaml.SafeLoader)
+    stocks = dat['stocks']
+    sequence_length = dat['prediction_duration'] + dat['training_duration']  
+    num_features = dat['num_features']  # Adjust this based on the actual number of features you have
 
     X_train_list = []
     X_test_list = []
@@ -130,12 +137,12 @@ if __name__ == "__main__":
     y_test_list = []
 
     for stock in stocks:
-        input_filename = f'/Users/williampratt/Documents/project_sea_ranch/data/raw/{stock}_intraday_1min.csv'
+        input_filename = f'data/raw/{stock}_intraday_1min.csv'
         
         # Load and preprocess the data
         data = load_data(input_filename)
         if data is not None:
-            processed_data = preprocess_and_save_data(data)
+            processed_data = preprocess_and_save_data(data, stock)
             # Now create the sequences from the processed data
             sequences = create_sequences(processed_data.values, sequence_length, num_features)
 
@@ -143,9 +150,9 @@ if __name__ == "__main__":
 
             # If you have sequences for the stock, then split them into training and testing sets
             if sequences.shape[0] != 0:
-                X = sequences[:, :-1, :]  # All but the last time step
+                X = sequences[:, :dat['training_duration'], :]  # All but the last prediction duration time steps
                 y = sequences[:, -1, :]   # Just the last time step
-                X_train_split, X_test_split, y_train_split, y_test_split = train_test_split(X, y, test_size=0.2)
+                X_train_split, X_test_split, y_train_split, y_test_split = train_test_split(X, y, test_size=0.2, shuffle=False) #Shuffle is false to prevent model looking into the future
 
                 X_train_list.append(X_train_split)
                 X_test_list.append(X_test_split)
@@ -161,7 +168,7 @@ if __name__ == "__main__":
 
         # Save the concatenated arrays
         for dataset, name in zip([X_train, y_train, X_test, y_test], ['x_train', 'y_train', 'x_test', 'y_test']):
-            output_path = f'/Users/williampratt/Documents/project_sea_ranch/data/preprocessed data/{name}.npy'
+            output_path = f"{dat['data_path']}/preprocessed data/{name}.npy"
             np.save(output_path, dataset)
             print(f"Saved {name} shape: {dataset.shape}")
     else:

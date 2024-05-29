@@ -9,6 +9,10 @@ from data_preparation import load_data, preprocess_and_save_data
 from lstm_model import create_lstm_model
 import os
 from dotenv import load_dotenv
+import yaml
+
+with open('src/settings.yml', 'r') as f:
+    dat = yaml.load(f, Loader=yaml.SafeLoader)
 
 # Load environment variables
 load_dotenv()
@@ -19,7 +23,7 @@ alpaca_secret_key = os.getenv('ALPACA_SECRET_KEY')
 
 # Load your trained LSTM model
 # Load your trained LSTM model
-model_path = '/Users/williampratt/Documents/project_sea_ranch/models/lstm_prediction_model_v1.keras'
+model_path = dat['model_path']
 model = load_model(model_path)
 
 # Initialize the trading strategy
@@ -27,12 +31,12 @@ strategy = TradingStrategy(model, alpaca_api_key, alpaca_secret_key)
 
 # Define sequence length and symbols
 sequence_length = 30
-symbols = ['NVDA', 'VOO', 'SPY']
+symbols = dat['stocks']
 
 # Backtest for each symbol
 for symbol in symbols:
     try:
-        file_path = f'/Users/williampratt/Documents/project_sea_ranch/data/raw/{symbol}_intraday_1min.csv'
+        file_path = f"{dat['data_path']}/raw/{symbol}_intraday_1min.csv"
         current_data = pd.read_csv(file_path)
 
         preprocessed_data = strategy.preprocess_realtime_data(current_data, sequence_length=29)  # Adjusted sequence_length to 29
