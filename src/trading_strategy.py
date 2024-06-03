@@ -20,10 +20,11 @@ from data_preparation import load_data, preprocess_and_save_data
 from lstm_model import create_lstm_model
 from alpaca_trade_api.rest import REST
 from alpaca_trade_api.stream import Stream
+import yaml
 
 load_dotenv()
-alpaca_api_key = os.getenv('ALPACA_API_KEY')
-alpaca_secret_key = os.getenv('ALPACA_SECRET_KEY')
+alpaca_api_key = "PK6RB7JZX8K8UG3IZGQ0"#os.getenv('ALPACA_API_KEY')
+alpaca_secret_key = "J9R6zlh3olUA599LeYQ1rSNn7Fs4SNUvl1b3fxog"#os.getenv('ALPACA_SECRET_KEY')
 
 class TradingStrategy:
     def __init__(self, model, alpaca_api_key, alpaca_secret_key, threshold=0.005, capital=10000, stop_loss=0.004, take_profit=0.005):
@@ -46,7 +47,7 @@ class TradingStrategy:
 
     def init_alpaca_client(self):
         try:
-            self.api = REST(self.alpaca_api_key, self.alpaca_secret_key, base_url='https://paper-api.alpaca.markets')
+            self.api = REST(alpaca_api_key, alpaca_secret_key, base_url='https://paper-api.alpaca.markets')
             logging.info("Alpaca client initialized successfully.")
         except Exception as e:
             logging.error(f"Error initializing Alpaca REST client: {e}")
@@ -54,7 +55,9 @@ class TradingStrategy:
 
         # Test getting market data
         try:
-            symbols = ['SPY', 'META', 'TSLA', 'AMZN', 'MSFT', 'AAPL', 'GOOG', 'NVDA', 'VOO']
+
+            symbols = ['META', 'TSLA', 'AMZN']
+
             for symbol in symbols:
                 # Use get_latest_trade instead of get_last_trade
                 last_trade = self.api.get_latest_trade(symbol)
@@ -62,16 +65,16 @@ class TradingStrategy:
         except Exception as e:
             print(f"An error occurred: {e}")
 
-        if not self.alpaca_api_key or not self.alpaca_secret_key:
-            raise Exception("Alpaca API key or secret key not found")
+        # if not self.alpaca_api_key or not self.alpaca_secret_key:
+        #     raise Exception("Alpaca API key or secret key not found")
 
         self.market_open = datetime.strptime("09:30:00", "%H:%M:%S").time()
         self.market_close = datetime.strptime("17:30:00", "%H:%M:%S").time()
         self.est = pytz.timezone('US/Eastern')
 
     async def setup_websocket_connection(self):
-        self.stream = Stream(self.alpaca_api_key,
-                             self.alpaca_secret_key,
+        self.stream = Stream(alpaca_api_key,
+                             alpaca_secret_key,
                              base_url='https://paper-api.alpaca.markets',
                              data_feed='iex')  # or use 'sip' for paid subscription
 
@@ -407,7 +410,7 @@ async def main():
     alpaca_secret_key = os.getenv('ALPACA_SECRET_KEY')
 
     # Load your trained LSTM model
-    model_path = '/Users/williampratt/Documents/project_sea_ranch/models/lstm_prediction_model_v1.keras'
+    model_path = '/Users/aditya/psr_v1/lstm_model_v1.keras'
     model = load_model(model_path)
 
     # Initialize trading strategy
@@ -424,4 +427,7 @@ async def main():
 
     # Main execution logic
 if __name__ == "__main__":
+    with open('src/settings.yml', 'r') as f:
+        dat = yaml.load(f, Loader=yaml.SafeLoader)
     asyncio.run(main())
+    # main()

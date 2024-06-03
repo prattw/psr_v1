@@ -1,3 +1,7 @@
+"""
+Run preprocessing and split data and save to run inference
+"""
+
 import pandas as pd
 import numpy as np
 import logging
@@ -5,6 +9,7 @@ import os
 import pickle
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import MinMaxScaler
+import yaml
 
 # Enhanced logging setup
 logging.basicConfig(level=logging.INFO, filename='data_preparation.log', filemode='w', 
@@ -24,14 +29,19 @@ def load_data(filename):
         logging.error(f"An error occurred while loading data from {filename}: {e}")
         return None
 
-def preprocess_and_save_data(data, scaler_path='scaler.pkl'):
-    logging.info("Starting preprocessing data")
+from sklearn.preprocessing import MinMaxScaler
+
+def preprocess_and_save_data(data, stock):
+
     try:
         data = data.drop(columns='Unnamed: 0', errors='ignore').dropna(axis=1, how='all')
         numeric_columns = data.select_dtypes(include=[np.number]).columns
         scaler = MinMaxScaler(feature_range=(0, 1))
         data[numeric_columns] = scaler.fit_transform(data[numeric_columns])
-        with open(scaler_path, 'wb') as file:
+
+        # Save the scaler for later use
+        with open(f'{stock}_scaler.pkl', 'wb') as file:
+
             pickle.dump(scaler, file)
         logging.info("Data preprocessing and scaler saving successful")
         return data
@@ -48,9 +58,12 @@ def create_sequences(data, sequence_length, num_features):
     return np.array(sequences)
 
 if __name__ == "__main__":
-    stocks = ['SPY', 'META', 'TSLA', 'AMZN', 'MSFT', 'AAPL', 'GOOG', 'NVDA', 'VOO']
-    sequence_length = 30  # Adjust this to match the sequence length you're using for training
-    num_features = 5  # This should be set based on the actual number of features your model expects
+
+    with open('src/settings.yml', 'r') as f:
+        dat = yaml.load(f, Loader=yaml.SafeLoader)
+    stocks = dat['stocks']
+    sequence_length = dat['prediction_duration'] + dat['training_duration']  
+    num_features = dat['num_features']  # Adjust this based on the actual number of features you have
 
     X_train_list = []
     X_test_list = []
@@ -58,20 +71,25 @@ if __name__ == "__main__":
     y_test_list = []
 
     for stock in stocks:
-        logging.info(f"Processing {stock}")
-        input_filename = f'p/Users/williampratt/Library/Mobile Documents/com~apple~CloudDocs/Documents/project_sea_ranch/data/raw/{stock}_intraday_1min.csv'
+
+        input_filename = f'data/raw/{stock}_intraday_1min.csv'
+        
+        # Load and preprocess the data
         data = load_data(input_filename)
-        if data is None:
-            continue
-        processed_data = preprocess_and_save_data(data)
-        if processed_data is not None:
+        if data is not None:
+            processed_data = preprocess_and_save_data(data, stock)
+            # Now create the sequences from the processed data
             sequences = create_sequences(processed_data.values, sequence_length, num_features)
             logging.info(f"Processed data shape for {stock}: {sequences.shape}")
 
-            if sequences.size > 0:
-                X = sequences[:, :-1, :]  # All but the last time step
+            print(f"Processed data shape for {stock}:", sequences.shape)
+
+            # If you have sequences for the stock, then split them into training and testing sets
+            if sequences.shape[0] != 0:
+                X = sequences[:, :dat['training_duration'], :]  # All but the last prediction duration time steps
                 y = sequences[:, -1, :]   # Just the last time step
-                X_train_split, X_test_split, y_train_split, y_test_split = train_test_split(X, y, test_size=0.2)
+                X_train_split, X_test_split, y_train_split, y_test_split = train_test_split(X, y, test_size=0.2, shuffle=False) #Shuffle is false to prevent model looking into the future
+
                 X_train_list.append(X_train_split)
                 X_test_list.append(X_test_split)
                 y_train_list.append(y_train_split)
@@ -84,7 +102,8 @@ if __name__ == "__main__":
         y_test = np.concatenate(y_test_list, axis=0)
 
         for dataset, name in zip([X_train, y_train, X_test, y_test], ['x_train', 'y_train', 'x_test', 'y_test']):
-            output_path = r'/Users/williampratt/Library/Mobile Documents/com~apple~CloudDocs/Documents/project_sea_ranch/data/preprocessed data/{}.npy'.format(name)
+
+            output_path = f"{dat['data_path']}/preprocessed data/{name}.npy"
             np.save(output_path, dataset)
             logging.info(f"Saved {name} data with shape: {dataset.shape}")
     else:

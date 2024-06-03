@@ -4,12 +4,13 @@ import requests
 import os
 from dotenv import load_dotenv
 import time
+import yaml
 
 # Load environment variables from .env file
 load_dotenv()
+api_key = os.getenv('ALPHA_VANTAGE_API_KEY')
 
 def fetch_stock_data(symbol, interval='1min', outputsize='full'):
-    api_key = os.getenv('ALPHA_VANTAGE_API_KEY')
     # Ensure you're passing the interval and outputsize to the URL
     url = f"https://www.alphavantage.co/query?function=TIME_SERIES_INTRADAY&symbol={symbol}&interval={interval}&outputsize={outputsize}&apikey={api_key}&datatype=json"
     
@@ -31,7 +32,8 @@ def fetch_stock_data(symbol, interval='1min', outputsize='full'):
         df.rename(columns=lambda s: s[3:], inplace=True)  # Removing the numerical prefix from column names.
 
         # Save the DataFrame as a CSV file.
-        df.to_csv(f'/Users/williampratt/Library/Mobile Documents/com~apple~CloudDocs/Documents/project_sea_ranch/data/raw/{symbol}_intraday_{interval}.csv')
+
+        df.to_csv(f'data/raw/{symbol}_intraday_{interval}.csv')
         
         print(f"Data for {symbol} fetched and saved successfully.")
         return df
@@ -50,7 +52,10 @@ def fetch_stock_data(symbol, interval='1min', outputsize='full'):
         return None
 
 # Specify the stock symbols
-symbols = ['SPY', 'META', 'TSLA', 'AMZN', 'MSFT', 'AAPL', 'GOOG', 'NVDA', 'VOO']
+
+with open('src/settings.yml', 'r') as f:
+    dat = yaml.load(f, Loader=yaml.SafeLoader)
+symbols = dat['stocks']
 # Fetch and save data for each stock symbol
 for symbol in symbols:
     print(f"Fetching data for {symbol}...")
