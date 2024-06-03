@@ -4,7 +4,6 @@ Run preprocessing and split data and save to run inference
 
 import pandas as pd
 import numpy as np
-import pandas as pd
 import logging
 import os
 import pickle
@@ -12,20 +11,20 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import MinMaxScaler
 import yaml
 
-logging.basicConfig(level=logging.INFO)
+# Enhanced logging setup
+logging.basicConfig(level=logging.INFO, filename='data_preparation.log', filemode='w', 
+                    format='%(asctime)s - %(levelname)s - %(message)s')
 
 def load_data(filename):
+    logging.info(f"Attempting to load data from {filename}")
     if not os.path.exists(filename):
         logging.error(f"File not found: {filename}")
         return None
     try:
-        # Read CSV file, assuming that the first column is the date which will be used as the index
         data = pd.read_csv(filename, index_col=0, parse_dates=True)
-        data.index.names = ['date']  # Rename the index to 'date'
-
+        data.index.names = ['date']
         logging.info(f"Data loaded successfully from {filename}")
         return data
-
     except Exception as e:
         logging.error(f"An error occurred while loading data from {filename}: {e}")
         return None
@@ -33,37 +32,22 @@ def load_data(filename):
 from sklearn.preprocessing import MinMaxScaler
 
 def preprocess_and_save_data(data, stock):
-    try:
-        # Drop 'Unnamed: 0' column if it exists and columns with all NaN values
-        data = data.drop(columns='Unnamed: 0', errors='ignore').dropna(axis=1, how='all')
 
-        # Select only numeric columns for scaling
+    try:
+        data = data.drop(columns='Unnamed: 0', errors='ignore').dropna(axis=1, how='all')
         numeric_columns = data.select_dtypes(include=[np.number]).columns
         scaler = MinMaxScaler(feature_range=(0, 1))
         data[numeric_columns] = scaler.fit_transform(data[numeric_columns])
 
         # Save the scaler for later use
         with open(f'{stock}_scaler.pkl', 'wb') as file:
+
             pickle.dump(scaler, file)
-
+        logging.info("Data preprocessing and scaler saving successful")
         return data
-
     except Exception as e:
         logging.error(f"Error during preprocessing and saving scaler: {e}")
         return None
-
-def split_and_save_data(filename, output_filename, test_size=0.2):
-    data = pd.read_csv(filename)
-
-    # Split data (80% train, 20% test)
-    train_data, test_data = train_test_split(data, test_size=test_size, shuffle=False)
-
-    # Save test data to CSV
-    test_data.to_csv(output_filename, index=False)
-    # Optionally, also save train_data if needed
-
-sequence_length = 60  # Adjust as needed
-num_features = 5     # Adjust based on your data
 
 def create_sequences(data, sequence_length, num_features):
     sequences = []
@@ -73,58 +57,8 @@ def create_sequences(data, sequence_length, num_features):
             sequences.append(sequence)
     return np.array(sequences)
 
-def add_rolling_average(data, column_name, window_size):
-    """
-    Adds a rolling average feature to the dataset.
-    """
-    if column_name not in data.columns:
-        print(f"Column {column_name} not found in data.")
-        return data
-
-    try:
-        data['rolling_avg'] = data[column_name].rolling(window=window_size).mean()
-        return data
-    except Exception as e:
-        print(f"Error in add_rolling_average: {e}")
-        return data
-
-def calculate_sharpe_ratio(data, column_name, risk_free_rate=0.0, window_size=252):
-    """
-    Calculates the rolling Sharpe Ratio of a financial time series.
-    """
-    if column_name not in data.columns:
-        print(f"Column {column_name} not found in data.")
-        return data
-
-    try:
-        rolling_mean_return = data[column_name].rolling(window=window_size).mean()
-        rolling_std_return = data[column_name].rolling(window=window_size).std()
-
-        data['sharpe_ratio'] = (rolling_mean_return - risk_free_rate) / rolling_std_return * np.sqrt(window_size)
-        return data
-    except Exception as e:
-        print(f"Error in calculate_sharpe_ratio: {e}")
-        return data
-
-from sklearn.model_selection import train_test_split
-
-def train_test_split_sequences(sequences, test_size=0.2):
-    """
-    Splits sequences into training and test sets.
-
-    Parameters:
-    sequences (numpy.ndarray): Sequences of data.
-    test_size (float): Proportion of the dataset to include in the test split.
-
-    Returns:
-    tuple: Training and test data splits.
-    """
-    num_test_samples = int(test_size * len(sequences))
-    train_data = sequences[:-num_test_samples]
-    test_data = sequences[-num_test_samples:]
-    return train_data, test_data
-
 if __name__ == "__main__":
+
     with open('src/settings.yml', 'r') as f:
         dat = yaml.load(f, Loader=yaml.SafeLoader)
     stocks = dat['stocks']
@@ -137,6 +71,7 @@ if __name__ == "__main__":
     y_test_list = []
 
     for stock in stocks:
+
         input_filename = f'data/raw/{stock}_intraday_1min.csv'
         
         # Load and preprocess the data
@@ -145,6 +80,7 @@ if __name__ == "__main__":
             processed_data = preprocess_and_save_data(data, stock)
             # Now create the sequences from the processed data
             sequences = create_sequences(processed_data.values, sequence_length, num_features)
+            logging.info(f"Processed data shape for {stock}: {sequences.shape}")
 
             print(f"Processed data shape for {stock}:", sequences.shape)
 
@@ -159,17 +95,16 @@ if __name__ == "__main__":
                 y_train_list.append(y_train_split)
                 y_test_list.append(y_test_split)
 
-    # Concatenate the lists into arrays only if they are not empty
     if X_train_list and X_test_list and y_train_list and y_test_list:
         X_train = np.concatenate(X_train_list, axis=0)
         X_test = np.concatenate(X_test_list, axis=0)
         y_train = np.concatenate(y_train_list, axis=0)
         y_test = np.concatenate(y_test_list, axis=0)
 
-        # Save the concatenated arrays
         for dataset, name in zip([X_train, y_train, X_test, y_test], ['x_train', 'y_train', 'x_test', 'y_test']):
+
             output_path = f"{dat['data_path']}/preprocessed data/{name}.npy"
             np.save(output_path, dataset)
-            print(f"Saved {name} shape: {dataset.shape}")
+            logging.info(f"Saved {name} data with shape: {dataset.shape}")
     else:
         logging.error("No training or testing data available for any stock.")

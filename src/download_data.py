@@ -32,6 +32,7 @@ def fetch_stock_data(symbol, interval='1min', outputsize='full'):
         df.rename(columns=lambda s: s[3:], inplace=True)  # Removing the numerical prefix from column names.
 
         # Save the DataFrame as a CSV file.
+
         df.to_csv(f'data/raw/{symbol}_intraday_{interval}.csv')
         
         print(f"Data for {symbol} fetched and saved successfully.")
@@ -51,6 +52,7 @@ def fetch_stock_data(symbol, interval='1min', outputsize='full'):
         return None
 
 # Specify the stock symbols
+
 with open('src/settings.yml', 'r') as f:
     dat = yaml.load(f, Loader=yaml.SafeLoader)
 symbols = dat['stocks']
