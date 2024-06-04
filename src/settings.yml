@@ -1,0 +1,17 @@
+stocks:
+  - META
+  - TSLA
+  - AMZN
+  - MSFT
+  - NVDA
+  - AAPL
+  - GOOGcs
+
+model_path: /Users/aditya/psr_v1/lstm_model_v3.keras
+data_path: /Users/aditya/psr_v1/data
+profit_percent: 0.02
+prediction_window: 60          # in mins
+prediction_duration: 15        # how much into the future do you want to predict in mins
+training_duration: 30          # how many 1 min candles to use for prediction
+num_features: 5
+
