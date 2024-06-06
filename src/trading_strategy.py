@@ -55,7 +55,9 @@ class TradingStrategy:
 
         # Test getting market data
         try:
+
             symbols = ['META', 'TSLA', 'AMZN']
+
             for symbol in symbols:
                 # Use get_latest_trade instead of get_last_trade
                 last_trade = self.api.get_latest_trade(symbol)
