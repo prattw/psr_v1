@@ -49,6 +49,36 @@ def preprocess_and_save_data(data, stock):
         logging.error(f"Error during preprocessing and saving scaler: {e}")
         return None
 
+def preprocess_data(data, stock):
+    try:
+        with open(f'{stock}_scaler.pkl', 'rb') as file:
+            scaler = pickle.load(file)
+        # Drop 'Unnamed: 0' column if it exists and columns with all NaN values
+        if 'Unnamed: 0' in data.columns:
+            data = data.drop(columns='Unnamed: 0', errors='ignore').dropna(axis=1, how='all')
+
+        # Select only numeric columns for scaling
+        numeric_columns = data.select_dtypes(include=[np.number]).columns
+        data[numeric_columns] = scaler.fit_transform(data[numeric_columns])
+        return data
+
+    except Exception as e:
+        logging.error(f"Error during preprocessing and saving scaler: {e}")
+        return None
+
+def split_and_save_data(filename, output_filename, test_size=0.2):
+    data = pd.read_csv(filename)
+
+    # Split data (80% train, 20% test)
+    train_data, test_data = train_test_split(data, test_size=test_size, shuffle=False)
+
+    # Save test data to CSV
+    test_data.to_csv(output_filename, index=False)
+    # Optionally, also save train_data if needed
+
+sequence_length = 60  # Adjust as needed
+num_features = 5     # Adjust based on your data
+
 def create_sequences(data, sequence_length, num_features):
     sequences = []
     for i in range(len(data) - sequence_length + 1):
