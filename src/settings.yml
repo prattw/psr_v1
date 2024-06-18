@@ -5,7 +5,16 @@ stocks:
   - MSFT
   - NVDA
   - AAPL
-  - GOOGcs
+  - GOOG
+
+stock_qty:
+  - 5
+  - 5
+  - 5
+  - 5
+  - 5
+  - 5
+  - 6
 
 model_path: /Users/aditya/psr_v1/lstm_model_v3.keras
 data_path: /Users/aditya/psr_v1/data
